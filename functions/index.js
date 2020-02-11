@@ -18,3 +18,4 @@ app.get('/login', frontendHandler);
 app.get('/home', frontendHandler);
 app.get('/add', frontendHandler);
 app.get('/show', frontendHandler);
+app.get('/profile', frontendHandler);

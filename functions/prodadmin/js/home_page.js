@@ -7,6 +7,7 @@ function home_page_secured() {
     gblPageContent.innerHTML += `
       <a href='/add' class="btn btn-outline-primary">Add A Product</a>
       <a href='/show' class="btn btn-outline-primary">Show Products</a>
+      <a href='/profile' class="btn btn-outline-primary">Profile</a>
       <button class="btn btn-outline-danger" type="button" onclick="logOut()">Log out</button>
     `;
 }

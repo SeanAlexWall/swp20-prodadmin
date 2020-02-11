@@ -47,10 +47,13 @@
   <script src="js/home_page.js"></script>
   <script src="js/add_page.js"></script>
   <script src="js/show_page.js"></script>
+  <script src="js/profile_page.js"></script>
 
   <script>
     const gblPageContent = document.getElementById('page_content');
     const IMAGE_FOLDER = 'products/';
+    const PROF_PIC_FOLDER = 'profile_pictures/';
+    const PROF_COLLECTION = 'profiles'
     const COLLECTION = 'products';
     window.onload = function(){
       const currentPath = window.location.pathname;
@@ -65,6 +68,9 @@
       }
       else if(currentPath === '/show'){
         show_page();
+      }
+      else if(currentPath === '/profile'){
+        profile_page();
       }
       else{
         window.location.href='/';
