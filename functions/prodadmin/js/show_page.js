@@ -1,5 +1,5 @@
 function show_page() {
-    show_page_secured();
+    auth('prodadmin@test.com', show_page_secured, '/login');
 }
 
 let products; //list of products
@@ -34,15 +34,153 @@ async function show_page_secured() {
     }
 
     for (let i = 0; i < products.length; i++) {
+        const p = products[i];
         gblPageContent.innerHTML += `
-          <div id="${products[i].docId}" class="card" style="width: 18rem; display: inline-block" >
-            <img src="${products[i].image_url}" class="card-img-top">
+          <div id="${p.docId}" class="card" style="width: 18rem; display: inline-block" >
+            <img src="${p.image_url}" class="card-img-top">
             <div class="card-body">
-              <h5 class="card-title">${products[i].name}</h5>
-              <p class="card-text">${products[i].price}<br>${products[i].summary}</p>
-              <a href="#" class="btn btn-primary">Go somewhere</a>
+              <h5 class="card-title">${p.name}</h5>
+              <p class="card-text">${p.price}<br>${p.summary}</p>
+              <button class="btn btn-primary" type="button" onclick="editProduct(${i})">Edit</button>
+              <button class="btn btn-danger" type="button" onclick="deleteProduct(${i})">Delete</button>
             </div>
           </div>
         `;
+    }
+}
+
+let cardOriginal;
+let imageFile2update;
+
+function editProduct(index){
+    const p = products[index];
+    const card = document.getElementById(p.docId);
+    cardOriginal = card.innerHTML;
+
+    card.innerHTML = `
+        <div class="form-group">
+            Name: <input class="form-control" type="text" id="name" value="${p.name}"/>
+            <p id="name_error" style="color:red;" />
+        </div>
+        <div class="form-group">
+            Summary: <br>
+            <textarea class="form-control"  id="summary" cols="40" rows="5">${p.summary}</textarea>
+            <p id="summary_error" style="color:red;" />
+        </div>
+        <div class="form-group">
+            Price: <input class="form-control" type="text" id="price" value="${p.price}"/>
+            <p id="price_error" style="color:red;" />
+        </div>
+        Current Image:<br>
+        <image src="${p.image_url}"><br>
+        <div class="form-group">
+            Image: <input type="file" id="imageButton" value="upload"/>
+        </div>
+        <button class="btn btn-primary" type="button" onclick="update(${index})">Update</button>
+        <button class="btn btn-secondary" type="button" onclick="cancel(${index})">Cancel</button>
+
+    `;
+
+    const imageButton = document.getElementById("imageButton");
+    imageButton.addEventListener("change", e=>{
+        imageFile2update = e.target.files[0];
+        
+    });
+
+}
+async function update(index){
+    const p = products[index];
+    const newName = document.getElementById("name").value;
+    const newSummary = document.getElementById("summary").value;
+    const newPrice = document.getElementById("price").value;
+
+    const nameErrortg = document.getElementById("name_error");
+    const summaryErrortg = document.getElementById("summary_error");
+    const priceErrortg = document.getElementById("price_error");
+    nameErrortg.innerHTML = validate_name(newName);
+    priceErrortg.innerHTML = validate_price(newPrice);
+    summaryErrortg.innerHTML = validate_summary(newSummary);
+
+    if(nameErrortg.innerHTML || priceErrortg.innerHTML || summaryErrortg.innerHTML){
+        return;
+    }
+
+
+    let updated = false;
+    const newInfo = {};
+    if(p.name !== newName) {
+        newInfo.name = newName;
+        updated = true;
+    }
+    if(p.summary !== newSummary) {
+        newInfo.summary = newSummary;
+        updated = true;
+    }
+    if(p.price !== newPrice) {
+        newInfo.price = Number(Number(newPrice).toFixed(2));
+        updated = true;
+    }
+    if(imageFile2update){
+        updated = true;
+    }
+    if(!updated){
+        cancel(index);
+        return;
+    }
+
+    //actual update
+    try{
+        if(imageFile2update){
+            console.log("0")
+            const imageRef2Del = firebase.storage().ref().child(IMAGE_FOLDER + p.image);
+    console.log("0")
+            await imageRef2Del.delete();
+            console.log("0")
+
+            const image = Date.now() + imageFile2update.name;
+            console.log("0")
+            const newImageRef = firebase.storage().ref(IMAGE_FOLDER + image);
+            console.log("0")
+            const taskSnapshot = await newImageRef.put(imageFile2update);
+            console.log("0")
+            const image_url = await taskSnapshot.ref.getDownloadURL();
+            console.log("0")
+            newInfo.image = image;
+            console.log("0")
+            newInfo.image_url = image_url;
+        }
+
+        await firebase.firestore().collection(COLLECTION).doc(p.docId).update(newInfo);
+        window.location.href = '/show';
+    }
+    catch(e){
+        gblPageContent.innerHTML = 'ERROR: ' + JSON.stringify(e);
+    }
+}
+function cancel(index){
+    const p = products[index];
+    const card = document.getElementById(p.docId);
+    card.innerHTML = cardOriginal;
+
+    
+
+
+}
+
+async function deleteProduct(index){
+    try{
+        const p = products[index];
+        await firebase.firestore().collection(COLLECTION).doc(p.docId).delete();
+        const imageref = firebase.storage().ref().child(IMAGE_FOLDER + p.image);
+        await imageref.delete();
+
+        const card = document.getElementById(p.docId);
+        card.parentNode.removeChild(card);
+
+        delete products[index];
+
+    }
+    catch(e){
+        gblPageContent.innerHTML = "ERROR: <br>" + JSON.stringify(e);
     }
 }
