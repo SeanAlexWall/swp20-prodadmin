@@ -1,5 +1,5 @@
 function add_page(){
-    add_page_secured();
+    auth('prodadmin@test.com', add_page_secured, '/login');
 }
 
 let gblImageFile; //file selected
