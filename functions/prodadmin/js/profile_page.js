@@ -68,7 +68,8 @@ function getProfile() {
 
                 snapshot.forEach(doc => {
                     console.log(doc.id, '=>', doc.data());
-                    let profile1 = doc.data();
+                    const { name, bio, image, image_url } = doc.data();
+                    let profile1 = { docId: doc.id, name, bio, image, image_url };
                     resolve(profile1);
                 });
             })
@@ -97,6 +98,7 @@ async function updateProfile() {
     bioErrorTg.innerHTML = validate_summary(newBio);
 
     if (profile != null) {
+        
         if (nameErrorTg.innerHTML || bioErrorTg.innerHTML) {
             return;
         }
@@ -122,7 +124,7 @@ async function updateProfile() {
         try {
 
             if (imageFile2update) {
-                const imageRef2Del = firebase.storage().ref().child(IMAGE_FOLDER + p.image);
+                const imageRef2Del = firebase.storage().ref().child(IMAGE_FOLDER + profile.image);
                 await imageRef2Del.delete();
                 const image = Date.now() + imageFile2update.name;
                 const newImageRef = firebase.storage().ref(IMAGE_FOLDER + image);
@@ -136,6 +138,7 @@ async function updateProfile() {
             gblPageContent.innerHTML = `
             <h1>profile had been updated!</h1>
             <a href='/home' class='btn btn-outline-primary'>home</a>
+            <a href='/profile' class='btn btn-outline-primary'>profile</a>
         `;
         }
         catch (e) {
