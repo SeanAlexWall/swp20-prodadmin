@@ -131,22 +131,13 @@ async function update(index){
     //actual update
     try{
         if(imageFile2update){
-            console.log("0")
             const imageRef2Del = firebase.storage().ref().child(IMAGE_FOLDER + p.image);
-    console.log("0")
             await imageRef2Del.delete();
-            console.log("0")
-
             const image = Date.now() + imageFile2update.name;
-            console.log("0")
             const newImageRef = firebase.storage().ref(IMAGE_FOLDER + image);
-            console.log("0")
             const taskSnapshot = await newImageRef.put(imageFile2update);
-            console.log("0")
             const image_url = await taskSnapshot.ref.getDownloadURL();
-            console.log("0")
             newInfo.image = image;
-            console.log("0")
             newInfo.image_url = image_url;
         }
 
